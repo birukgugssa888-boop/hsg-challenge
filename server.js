@@ -9,7 +9,7 @@ const questions = require('./questions');
 const app = express();
 const PORT = process.env.PORT || 3000;
 // ⚠️ CHANGE THIS to your own secret admin password
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Akashi++';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'AKASHI';
 
 // Secret student-to-admin shortcut
 const ADMIN_TRIGGER_NAME = 'biruk';
