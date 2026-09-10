@@ -195,7 +195,32 @@ app.post('/api/winner', unlockLimiter, (req, res) => {
     }
   });
 });
+// ============================================================
+// ADMIN COUNT — quick check of who joined
+// ============================================================
+app.get('/api/admin/count', (req, res) => {
+  const totalJoined = db.prepare('SELECT COUNT(*) AS n FROM students').get().n;
+  const totalSubmitted = db.prepare('SELECT COUNT(*) AS n FROM attempts WHERE submitted = 1').get().n;
+  const students = db.prepare(`
+    SELECT s.name, s.code, s.joined_at, a.score, a.submitted, a.time_taken
+    FROM students s
+    LEFT JOIN attempts a ON a.code = s.code
+    ORDER BY s.joined_at ASC
+  `).all();
 
+  res.json({
+    totalJoined,
+    totalSubmitted,
+    students: students.map(s => ({
+      name: s.name,
+      code: s.code,
+      joined: new Date(s.joined_at).toLocaleString(),
+      submitted: !!s.submitted,
+      score: s.score,
+      timeTaken: s.time_taken
+    }))
+  });
+});
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 app.listen(PORT, () => {
