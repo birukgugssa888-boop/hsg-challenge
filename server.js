@@ -13,7 +13,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'hsg-admin-2026';
 
 // Secret student-to-admin shortcut
 const ADMIN_TRIGGER_NAME = 'biruk';
-const ADMIN_TRIGGER_CODE = 'h1t2';
+const ADMIN_TRIGGER_CODE = 'h1t3';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const EXAM_DURATION_MS = 20 * 60 * 1000;
 
