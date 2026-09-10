@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H.S.G. · 3-Day SAT Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif; }
+body { background: radial-gradient(circle at 20% 20%, #0a0f1e, #03060b); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1.5rem; }
+.challenge-card { max-width: 1200px; width: 100%; background: linear-gradient(145deg, #0b111f, #0a0e17); border: 2px solid #1e90ff; border-radius: 36px; box-shadow: 0 0 40px rgba(0,160,255,0.4), inset 0 0 40px rgba(0,100,255,0.2); padding: 2rem; position: relative; overflow: hidden; }
+.challenge-card::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; position: relative; z-index: 3; }
+.logo-area { display: flex; align-items: center; gap: 1rem; }
+.logo-badge { background: #001d3d; border: 2px solid #4df0ff; border-radius: 16px; padding: 0.5rem 1rem; font-weight: 800; font-size: 2rem; color: #b3f0ff; text-shadow: 0 0 12px #00d4ff; }
+.logo-text h1 { font-size: 2rem; font-weight: 800; color: #fff; text-shadow: 0 0 12px #00a6ff; }
+.logo-text p { color: #7ec8e3; font-size: 0.85rem; margin-top: 0.2rem; }
+.user-badge { color: #7df9ff; background: #001d3d; border: 1px solid #2f8fff; border-radius: 20px; padding: 0.4rem 0.9rem; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+.user-badge button { background: transparent; border: none; color: #ff7b7b; cursor: pointer; font-weight: 600; }
+.main-title { text-align: center; margin-bottom: 1.5rem; position: relative; z-index: 3; }
+.main-title h2 { font-size: 2.6rem; font-weight: 800; background: linear-gradient(135deg, #b0e0ff, #7df9ff, #4d9eff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; }
+.main-title .sub { font-size: 1rem; color: #9ad0ff; letter-spacing: 4px; margin-top: -0.2rem; text-transform: uppercase; }
+.auth-wrapper { position: relative; z-index: 3; max-width: 440px; margin: 2rem auto; }
+.auth-panel { background: #0b1424cc; border: 1.5px solid #2f7fbf; border-radius: 28px; padding: 2rem; backdrop-filter: blur(8px); }
+.auth-panel h3 { color: #c2e4ff; text-align: center; margin-bottom: 0.4rem; letter-spacing: 1px; }
+.auth-panel .subtitle { color: #7ec8e3; text-align: center; font-size: 0.85rem; margin-bottom: 1.4rem; }
+.auth-panel input { width: 100%; background: #0a1625; border: 1.5px solid #1e6f9f; border-radius: 40px; padding: 0.9rem 1.2rem; color: #e0f0ff; margin-bottom: 0.9rem; outline: none; font-size: 0.95rem; transition: 0.2s; }
+.auth-panel input:focus { border-color: #4df0ff; box-shadow: 0 0 18px #00a6ff55; }
+.auth-panel button { width: 100%; background: linear-gradient(145deg, #0f2b44, #0a1f33); border: 1.5px solid #2f8fff; border-radius: 40px; padding: 0.9rem; color: #b0e0ff; font-weight: 700; cursor: pointer; font-size: 1rem; letter-spacing: 1px; transition: 0.2s; }
+.auth-panel button:hover { background: #123a5a; border-color: #7df9ff; color: #fff; box-shadow: 0 0 25px #00a6ffaa; }
+.auth-panel button:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-msg { margin-top: 0.9rem; text-align: center; font-size: 0.85rem; min-height: 1.3rem; }
+.auth-msg.error { color: #ff7b7b; }
+.auth-msg.success { color: #4dff88; }
+.days-tracker { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.8rem; position: relative; z-index: 3; }
+.day-card { background: #0b1424cc; border: 1.5px solid #2f7fbf; border-radius: 20px; padding: 1rem 0.8rem; text-align: center; backdrop-filter: blur(6px); }
+.day-card.active { border-color: #4df0ff; box-shadow: 0 0 25px #00a6ff66; }
+.day-card.completed { border-color: #4dff88; box-shadow: 0 0 20px #4dff8833; }
+.day-card.upcoming { opacity: 0.65; }
+.day-icon { font-size: 1.6rem; margin-bottom: 0.3rem; color: #4df0ff; }
+.day-label { font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: #9ad0ff; }
+.day-status { font-size: 0.8rem; font-weight: 600; margin-top: 0.3rem; color: #4df0ff; }
+.day-countdown { font-size: 0.7rem; color: #6f8fa8; margin-top: 0.2rem; }
+.exam-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.8rem; position: relative; z-index: 3; }
+.questions-panel, .info-card, .lock-section, .winner-area { background: #0b1424cc; border: 1.5px solid #2f7fbf; border-radius: 28px; padding: 1.6rem; backdrop-filter: blur(8px); }
+.questions-panel { max-height: 600px; overflow-y: auto; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; border-bottom: 1px solid #3f9eff66; padding-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
+.panel-header h3 { color: #c2e4ff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+.timer-box { display: flex; align-items: center; gap: 8px; background: #001d3d; border: 1.5px solid #2f8fff; border-radius: 30px; padding: 0.3rem 1rem; }
+.timer-display { font-weight: 700; font-size: 1.1rem; color: #7df9ff; letter-spacing: 2px; min-width: 80px; text-align: center; }
+.question-block { background: #0e1a2bcc; border: 1px solid #2b6f9e; border-radius: 18px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
+.question-text { color: #e0f0ff; font-size: 0.95rem; margin-bottom: 0.6rem; display: flex; gap: 8px; }
+.q-num { color: #4df0ff; font-weight: 700; min-width: 28px; }
+.options { display: flex; flex-direction: column; gap: 0.3rem; padding-left: 2rem; }
+.option { color: #b8d4f0; font-size: 0.88rem; display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid transparent; transition: 0.15s; }
+.option:hover { background: #1a2f4a; border-color: #2f8fff; }
+.option.selected { background: #1a3f6a; border-color: #4df0ff; }
+.option.disabled { cursor: default; opacity: 0.7; }
+.letter { color: #4df0ff; font-weight: 700; min-width: 20px; }
+.info-card h4 { color: #9ad0ff; font-size: 0.9rem; margin-bottom: 0.8rem; }
+.info-card p { color: #b8d4f0; font-size: 0.88rem; line-height: 1.5; }
+.highlight { color: #4df0ff; font-weight: 600; }
+.score-box { margin-top: 0.8rem; background: #001d3d; border: 1px solid #2f8fff; border-radius: 16px; padding: 0.8rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+.score-value { color: #7df9ff; font-weight: 700; font-size: 1.2rem; }
+.lock-section { margin-top: 1.2rem; }
+.lock-title { color: #b0daff; font-size: 0.9rem; margin-bottom: 0.8rem; }
+.lock-input-group { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.lock-input-group input { flex: 1; background: #0a1625; border: 1.5px solid #1e6f9f; border-radius: 40px; padding: 0.8rem 1.2rem; font-size: 1.3rem; letter-spacing: 6px; color: #7df9ff; font-weight: 700; text-align: center; outline: none; }
+.lock-input-group input:disabled { opacity: 0.4; }
+.lock-input-group button { background: linear-gradient(145deg,#0f2b44,#0a1f33); border: 1.5px solid #2f8fff; border-radius: 40px; padding: 0 1.8rem; font-weight: 700; color: #b0e0ff; cursor: pointer; }
+.lock-input-group button:disabled { opacity: 0.4; cursor: not-allowed; }
+.lock-message { margin-top: 0.8rem; font-size: 0.85rem; color: #9ab8d4; min-height: 1.5rem; }
+.winner-area { margin-top: 1.2rem; text-align: center; }
+.winner-label { font-size: 0.85rem; letter-spacing: 3px; color: #ffd966; text-transform: uppercase; margin-bottom: 0.3rem; }
+.winner-name { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg,#ffd966,#ffaa33); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.winner-locked { font-size: 1.6rem; color: #3a6d99; letter-spacing: 4px; }
+.winner-details { margin-top: 0.6rem; background: #001d3d80; border-radius: 14px; padding: 0.6rem; font-size: 0.8rem; color: #b0d0f0; display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; }
+.hidden { display: none !important; }
+.footer { margin-top: 1.8rem; display: flex; justify-content: space-between; color: #4f7a9e; font-size: 0.8rem; border-top: 1px solid #1e3f5e; padding-top: 1rem; position: relative; z-index: 3; }
+.status-message { color: #ffb347; padding: 1.5rem; text-align: center; font-size: 0.95rem; line-height: 1.6; }
+@media (max-width: 900px) { .exam-layout { grid-template-columns: 1fr; } .days-tracker { grid-template-columns: 1fr; } .main-title h2 { font-size: 2rem; } }
+</style>
+</head>
+<body>
+<div class="challenge-card">
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-badge">H.S.G.</div>
+      <div class="logo-text">
+        <h1>H.S.G.</h1>
+        <p><i class="fas fa-bolt" style="color:#4df0ff;"></i> @HighschoolGene · Learn · Practice · Achieve</p>
+      </div>
+    </div>
+    <div id="userBadge" class="user-badge hidden">
+      <i class="fas fa-user-circle"></i> <span id="userNameDisplay"></span>
+      <button onclick="logout()">Leave</button>
+    </div>
+  </div>
+
+  <div class="main-title">
+    <h2>3-DAY STUDY CHALLENGE</h2>
+    <div class="sub">SAT VERBAL & LOGICAL REASONING · 15 MCQs PER DAY</div>
+  </div>
+
+  <div id="joinScreen" class="auth-wrapper">
+    <div class="auth-panel">
+      <h3><i class="fas fa-door-open"></i> Join the Challenge</h3>
+      <div class="subtitle">Enter your name and a personal code (any code you like)</div>
+      <input type="text" id="joinName" placeholder="Full Name" autocomplete="name">
+      <input type="text" id="joinCode" placeholder="Your Code (e.g. HSG-001)" autocomplete="off">
+      <button id="joinBtn" onclick="doJoin()">Enter Challenge</button>
+      <div class="auth-msg" id="joinMsg"></div>
+    </div>
+  </div>
+
+  <div id="appScreen" class="hidden">
+    <div class="days-tracker">
+      <div class="day-card" id="dayCard1"><div class="day-icon"><i class="fas fa-book-open"></i></div><div class="day-label">Day 1</div><div class="day-status" id="dayStatus1">Upcoming</div><div class="day-countdown" id="dayCountdown1">--:--:--</div></div>
+      <div class="day-card upcoming" id="dayCard2"><div class="day-icon"><i class="fas fa-pen-fancy"></i></div><div class="day-label">Day 2</div><div class="day-status" id="dayStatus2">Upcoming</div><div class="day-countdown" id="dayCountdown2">--:--:--</div></div>
+      <div class="day-card upcoming" id="dayCard3"><div class="day-icon"><i class="fas fa-trophy"></i></div><div class="day-label">Day 3</div><div class="day-status" id="dayStatus3">Upcoming</div><div class="day-countdown" id="dayCountdown3">--:--:--</div></div>
+    </div>
+    <div class="exam-layout">
+      <div class="questions-panel">
+        <div class="panel-header">
+          <h3><i class="fas fa-question-circle"></i> Exam Questions</h3>
+          <div class="timer-box">
+            <i class="fas fa-hourglass-half"></i>
+            <span class="timer-display" id="timerDisplay">20:00</span>
+          </div>
+        </div>
+        <div id="questionsContainer"></div>
+      </div>
+      <div>
+        <div class="info-card">
+          <h4><i class="fas fa-info-circle"></i> EXAM DETAILS</h4>
+          <p><span class="highlight">15 MCQs</span> · SAT Verbal & Logic.<br>
+          <span class="highlight">Time:</span> 20 minutes.<br>
+          <span class="highlight">Winner:</span> Best score, then fastest time.</p>
+          <div class="score-box">
+            <span><i class="fas fa-chart-bar"></i> Your Score</span>
+            <span class="score-value" id="scoreDisplay">0 / 15</span>
+          </div>
+        </div>
+        <div class="lock-section">
+          <div class="lock-title"><i class="fas fa-key"></i> ENTER 4-DIGIT ACCESS CODE</div>
+          <div class="lock-input-group">
+            <input type="password" id="lockInput" maxlength="4" placeholder="••••" disabled>
+            <button id="unlockBtn" onclick="tryUnlock()" disabled><i class="fas fa-lock"></i> LOCKED</button>
+          </div>
+          <div class="lock-message" id="lockMessage">
+            <i class="fas fa-hourglass-half"></i> Challenge in progress — winner revealed after Day 3.
+          </div>
+        </div>
+        <div class="winner-area" id="winnerArea">
+          <div class="winner-label"><i class="fas fa-trophy"></i> WINNER ANNOUNCED</div>
+          <div id="winnerDisplay"><div class="winner-locked">🔒 •••• 🔒</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span><i class="fas fa-paper-plane"></i> Join on Telegram @HighschoolGene</span>
+    <span><i class="fas fa-shield-alt"></i> H.S.G. · Dream. Plan. Study. Succeed.</span>
+  </div>
+</div>
+
+<script>
+const STATE = {
+  student
