@@ -167,4 +167,283 @@ body { background: radial-gradient(circle at 20% 20%, #0a0f1e, #03060b); display
 
 <script>
 const STATE = {
-  student
+  student: null,
+  questions: [],
+  userAnswers: [],
+  examFinished: false,
+  timeLeft: 20 * 60,
+  timerInterval: null,
+  challengeStatus: null
+};
+
+async function doJoin() {
+  const name = document.getElementById('joinName').value.trim();
+  const code = document.getElementById('joinCode').value.trim();
+  const msg = document.getElementById('joinMsg');
+  const btn = document.getElementById('joinBtn');
+
+  if (!name || !code) {
+    msg.textContent = 'Please enter both name and code';
+    msg.className = 'auth-msg error';
+    return;
+  }
+
+  btn.disabled = true;
+  msg.textContent = 'Joining...';
+  msg.className = 'auth-msg';
+
+  try {
+    const res = await fetch('/api/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, code })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.textContent = data.error || 'Could not join';
+      msg.className = 'auth-msg error';
+      btn.disabled = false;
+      return;
+    }
+
+    msg.textContent = '✅ Welcome, ' + data.student.name + '!';
+    msg.className = 'auth-msg success';
+    setTimeout(() => enterApp(data.student), 600);
+  } catch (err) {
+    msg.textContent = 'Connection error: ' + err.message;
+    msg.className = 'auth-msg error';
+    btn.disabled = false;
+  }
+}
+
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.reload();
+}
+
+async function enterApp(student) {
+  STATE.student = student;
+  document.getElementById('joinScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('userBadge').classList.remove('hidden');
+  document.getElementById('userNameDisplay').textContent = student.name + ' (' + student.code + ')';
+
+  const statusRes = await fetch('/api/status');
+  STATE.challengeStatus = await statusRes.json();
+  updateDayTracker();
+  setInterval(updateDayTracker, 1000);
+
+  const attemptRes = await fetch('/api/my-attempt');
+  const attemptData = await attemptRes.json();
+
+  if (attemptData.attempt && attemptData.attempt.submitted) {
+    document.getElementById('questionsContainer').innerHTML =
+      '<div class="status-message"><i class="fas fa-check-circle" style="color:#4dff88;font-size:2rem;"></i><br><br>' +
+      'You have already completed the exam.<br>' +
+      'Your final score: <b style="color:#4dff88;">' + attemptData.attempt.score + ' / 15</b></div>';
+    document.getElementById('scoreDisplay').textContent = attemptData.attempt.score + ' / 15';
+    document.getElementById('timerDisplay').textContent = 'DONE';
+    return;
+  }
+
+  const startRes = await fetch('/api/start', { method: 'POST' });
+  const startData = await startRes.json();
+
+  if (!startRes.ok) {
+    document.getElementById('questionsContainer').innerHTML =
+      '<div class="status-message"><i class="fas fa-info-circle"></i> ' + startData.error + '</div>';
+    return;
+  }
+
+  STATE.questions = startData.questions;
+  STATE.userAnswers = new Array(startData.questions.length).fill(null);
+
+  const elapsedSec = Math.floor((Date.now() - startData.startedAt) / 1000);
+  STATE.timeLeft = Math.max(0, Math.floor(startData.examDurationMs / 1000) - elapsedSec);
+
+  renderQuestions();
+  startTimer();
+}
+
+async function checkSession() {
+  try {
+    const res = await fetch('/api/me');
+    if (res.ok) {
+      const data = await res.json();
+      enterApp(data.student);
+    }
+  } catch (e) { /* not joined */ }
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questionsContainer');
+  const letters = ['A','B','C','D'];
+  container.innerHTML = '';
+
+  STATE.questions.forEach((q, idx) => {
+    const block = document.createElement('div');
+    block.className = 'question-block';
+
+    const qText = document.createElement('div');
+    qText.className = 'question-text';
+    qText.innerHTML = '<span class="q-num">' + (idx+1) + '.</span> ' + q.q;
+    block.appendChild(qText);
+
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'options';
+    q.options.forEach((opt, oIdx) => {
+      const optDiv = document.createElement('div');
+      optDiv.className = 'option';
+      optDiv.innerHTML = '<span class="letter">' + letters[oIdx] + '.</span> ' + opt;
+      optDiv.onclick = () => selectAnswer(idx, oIdx, optDiv);
+      optionsDiv.appendChild(optDiv);
+    });
+    block.appendChild(optionsDiv);
+    container.appendChild(block);
+  });
+}
+
+function selectAnswer(qIdx, oIdx, el) {
+  if (STATE.examFinished) return;
+  const block = el.closest('.question-block');
+  block.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.userAnswers[qIdx] = oIdx;
+
+  const answered = STATE.userAnswers.filter(a => a !== null).length;
+  document.getElementById('scoreDisplay').textContent = answered + ' / ' + STATE.questions.length + ' answered';
+
+  if (STATE.userAnswers.every(a => a !== null)) {
+    setTimeout(() => submitExam(), 500);
+  }
+}
+
+function startTimer() {
+  const display = document.getElementById('timerDisplay');
+  if (STATE.timeLeft <= 0) {
+    display.textContent = '00:00';
+    display.style.color = '#ff4d4d';
+    submitExam();
+    return;
+  }
+  display.textContent = String(Math.floor(STATE.timeLeft/60)).padStart(2,'0') + ':' + String(STATE.timeLeft%60).padStart(2,'0');
+
+  STATE.timerInterval = setInterval(() => {
+    STATE.timeLeft--;
+    display.textContent = String(Math.floor(STATE.timeLeft/60)).padStart(2,'0') + ':' + String(STATE.timeLeft%60).padStart(2,'0');
+    if (STATE.timeLeft <= 60) display.style.color = '#ff4d4d';
+    else if (STATE.timeLeft <= 300) display.style.color = '#ffb347';
+    if (STATE.timeLeft <= 0) {
+      clearInterval(STATE.timerInterval);
+      submitExam();
+    }
+  }, 1000);
+}
+
+async function submitExam() {
+  if (STATE.examFinished) return;
+  STATE.examFinished = true;
+  clearInterval(STATE.timerInterval);
+
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers: STATE.userAnswers })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('scoreDisplay').textContent = data.score + ' / ' + data.total;
+    }
+  } catch (e) { console.error(e); }
+
+  document.getElementById('timerDisplay').textContent = 'DONE';
+  document.getElementById('timerDisplay').style.color = '#4dff88';
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return '00:00:00';
+  const s = Math.floor(ms / 1000);
+  return String(Math.floor(s/3600)).padStart(2,'0') + ':' + String(Math.floor((s%3600)/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+}
+
+function updateDayTracker() {
+  if (!STATE.challengeStatus) return;
+  const now = Date.now();
+  const unlocks = STATE.challengeStatus.dayUnlocks;
+
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById('dayCard' + (i+1));
+    const status = document.getElementById('dayStatus' + (i+1));
+    const countdown = document.getElementById('dayCountdown' + (i+1));
+    card.classList.remove('active','completed','upcoming');
+
+    if (now >= unlocks[i]) {
+      if (i < 2 && now >= unlocks[i+1]) {
+        card.classList.add('completed'); status.textContent = 'Completed'; countdown.textContent = '✓ Done';
+      } else {
+        card.classList.add('active'); status.textContent = '● Active';
+        const next = i < 2 ? unlocks[i+1] : STATE.challengeStatus.challengeEnd;
+        countdown.textContent = 'Next in ' + formatCountdown(next - now);
+      }
+    } else {
+      card.classList.add('upcoming'); status.textContent = '🔒 Upcoming';
+      countdown.textContent = 'Reveals in ' + formatCountdown(unlocks[i] - now);
+    }
+  }
+
+  const lockInput = document.getElementById('lockInput');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const lockMsg = document.getElementById('lockMessage');
+
+  if (STATE.challengeStatus.challengeOver && !lockInput.dataset.unlocked) {
+    if (lockInput.disabled) {
+      lockInput.disabled = false;
+      unlockBtn.disabled = false;
+      unlockBtn.innerHTML = '<i class="fas fa-unlock-alt"></i> UNLOCK';
+      lockMsg.innerHTML = '<i class="fas fa-check-circle" style="color:#4dff88;"></i> Challenge complete! Enter code.';
+    }
+  }
+}
+
+async function tryUnlock() {
+  const pin = document.getElementById('lockInput').value.trim();
+  const msg = document.getElementById('lockMessage');
+  if (!pin) return;
+
+  try {
+    const res = await fetch('/api/winner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.innerHTML = '<i class="fas fa-times-circle" style="color:#ff7b7b;"></i> ' + data.error;
+      msg.style.color = '#ff7b7b';
+      document.getElementById('lockInput').value = '';
+      return;
+    }
+
+    if (data.winner) {
+      document.getElementById('winnerDisplay').innerHTML =
+        '<div class="winner-name">🏆 ' + data.winner.name + ' 🏆</div>' +
+        '<div class="winner-details">' +
+        '<span><i class="fas fa-star"></i> Score: ' + data.winner.score + '/' + data.winner.total + '</span>' +
+        '<span><i class="fas fa-clock"></i> Time: ' + Math.floor(data.winner.timeTaken/60) + ':' + String(data.winner.timeTaken%60).padStart(2,'0') + '</span>' +
+        '</div>';
+    } else {
+      document.getElementById('winnerDisplay').innerHTML = '<div class="winner-name">No submissions yet</div>';
+    }
+    document.getElementById('lockInput').dataset.unlocked = 'true';
+    document.getElementById('lockInput').disabled = true;
+    document.getElementById('unlockBtn').disabled = true;
+  } catch (e) { console.error(e); }
+}
+
+checkSession();
+</script>
+</body>
+</html>
