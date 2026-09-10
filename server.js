@@ -36,6 +36,10 @@ function getPin() {
 }
 
 // ---- JOIN ----
+// Serve the admin HTML page
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 app.post('/api/join', joinLimiter, (req, res) => {
   try {
     const { name, code } = req.body;
