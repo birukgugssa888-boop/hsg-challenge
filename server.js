@@ -45,26 +45,34 @@ app.post('/api/join', joinLimiter, (req, res) => {
 
     const cleanCode = code.trim().toUpperCase();
     const cleanName = name.trim();
-    const nameTaken = db.prepare('SELECT 1 FROM students WHERE LOWER(name) = LOWER(?)').get(cleanName);
-if (nameTaken) {
-  return res.status(409).json({ error: 'This name is already registered. Use your original code.' });
-}
+    const existingByCode = db.prepare('SELECT name, code FROM students WHERE code = ?').get(cleanCode);
 
-    const exists = db.prepare('SELECT 1 FROM students WHERE code = ?').get(cleanCode);
-    if (exists) return res.status(409).json({ error: 'This code is already taken. Choose a different one.' });
-
+    if (existingByCode) {
+      if (existingByCode.name.toLowerCase() === cleanName.toLowerCase()) {
+        res.cookie('code', cleanCode, {
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 12 * 60 * 60 * 1000
+        });
+        return res.json({ ok: true, student: { name: existingByCode.name, code: existingByCode.code } });
+      } else {
+        return res.status(409).json({ error: 'This code is already taken. Choose a different one.' });
+      }
+    }
+    const existingByName = db.prepare('SELECT code FROM students WHERE LOWER(name) = LOWER(?)').get(cleanName);
+    if (existingByName) {
+      return res.status(409).json({
+        error: 'This name is already registered with code: ' + existingByName.code + '. Please use that code.'
+      });
+    }
     db.prepare(`INSERT INTO students (code, name, joined_at) VALUES (?, ?, ?)`)
       .run(cleanCode, cleanName, Date.now());
 
-   const { remember } = req.body; 
-
-res.cookie('code', cleanCode, {
-  httpOnly: true,
-  sameSite: 'lax',
-  maxAge: remember
-    ? 30 * 24 * 60 * 60 * 1000  
-    : 12 * 60 * 60 * 1000
-});
+    res.cookie('code', cleanCode, {
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 12 * 60 * 60 * 1000
+    });
 
     res.json({ ok: true, student: { name: cleanName, code: cleanCode } });
   } catch (err) {
