@@ -32,10 +32,556 @@ body { background: radial-gradient(circle at 20% 20%, #0a0f1e, #03060b); display
 .auth-msg { margin-top: 0.9rem; text-align: center; font-size: 0.85rem; min-height: 1.3rem; }
 .auth-msg.error { color: #ff7b7b; }
 .auth-msg.success { color: #4dff88; }
+
+/* ---- 3-DAY TRACKER ---- */
 .days-tracker { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.8rem; position: relative; z-index: 3; }
-.day-card { background: #0b1424cc; border: 1.5px solid #2f7fbf; border-radius: 20px; padding: 1rem 0.8rem; text-align: center; backdrop-filter: blur(6px); cursor: pointer; transition: 0.2s; }
+.day-card { background: #0b1424cc; border: 1.5px solid #2f7fbf; border-radius: 20px; padding: 1.2rem 0.8rem; text-align: center; backdrop-filter: blur(6px); cursor: pointer; transition: 0.2s; }
 .day-card.active { border-color: #4df0ff; box-shadow: 0 0 25px #00a6ff66; }
 .day-card.completed { border-color: #4dff88; box-shadow: 0 0 20px #4dff8833; }
-.day-card.upcoming { opacity: 0.65; cursor: not-allowed; }
-.day-card:hover:not(.upcoming) { transform: translateY(-3px); }
-.day-icon { font-size: 1.6rem; margin-bottom:
+.day-card.upcoming { opacity: 0.55; cursor: not-allowed; }
+.day-card.selected { border-color: #ffd966; box-shadow: 0 0 25px #ffaa3366; }
+.day-card:hover:not(.upcoming):not(.completed) { transform: translateY(-3px); }
+.day-icon { font-size: 1.6rem; margin-bottom: 0.4rem; color: #4df0ff; }
+.day-card.completed .day-icon { color: #4dff88; }
+.day-card.upcoming .day-icon { color: #4f7a9e; }
+.day-label { font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: #9ad0ff; }
+.day-status { font-size: 0.85rem; font-weight: 600; margin-top: 0.4rem; color: #4df0ff; }
+.day-card.completed .day-status { color: #4dff88; }
+.day-card.upcoming .day-status { color: #6f8fa8; }
+.day-countdown { font-size: 0.7rem; color: #6f8fa8; margin-top: 0.25rem; }
+.day-score-badge { font-size: 0.75rem; color: #ffd966; margin-top: 0.3rem; font-weight: 600; }
+
+/* ---- EXAM LAYOUT ---- */
+.exam-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.8rem; position: relative; z-index: 3; }
+.questions-panel, .info-card, .lock-section, .winner-area { background: #0b1424cc; border: 1.5px solid #2f7fbf; border-radius: 28px; padding: 1.6rem; backdrop-filter: blur(8px); }
+.questions-panel { max-height: 600px; overflow-y: auto; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; border-bottom: 1px solid #3f9eff66; padding-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
+.panel-header h3 { color: #c2e4ff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+.timer-box { display: flex; align-items: center; gap: 8px; background: #001d3d; border: 1.5px solid #2f8fff; border-radius: 30px; padding: 0.3rem 1rem; }
+.timer-display { font-weight: 700; font-size: 1.1rem; color: #7df9ff; letter-spacing: 2px; min-width: 80px; text-align: center; }
+.question-block { background: #0e1a2bcc; border: 1px solid #2b6f9e; border-radius: 18px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
+.question-text { color: #e0f0ff; font-size: 0.95rem; margin-bottom: 0.6rem; display: flex; gap: 8px; }
+.q-num { color: #4df0ff; font-weight: 700; min-width: 28px; }
+.options { display: flex; flex-direction: column; gap: 0.3rem; padding-left: 2rem; }
+.option { color: #b8d4f0; font-size: 0.88rem; display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid transparent; transition: 0.15s; }
+.option:hover { background: #1a2f4a; border-color: #2f8fff; }
+.option.selected { background: #1a3f6a; border-color: #4df0ff; }
+.option.disabled { cursor: default; opacity: 0.7; }
+.letter { color: #4df0ff; font-weight: 700; min-width: 20px; }
+.info-card h4 { color: #9ad0ff; font-size: 0.9rem; margin-bottom: 0.8rem; }
+.info-card p { color: #b8d4f0; font-size: 0.88rem; line-height: 1.5; }
+.highlight { color: #4df0ff; font-weight: 600; }
+.score-box { margin-top: 0.8rem; background: #001d3d; border: 1px solid #2f8fff; border-radius: 16px; padding: 0.8rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+.score-value { color: #7df9ff; font-weight: 700; font-size: 1.2rem; }
+.lock-section { margin-top: 1.2rem; }
+.lock-title { color: #b0daff; font-size: 0.9rem; margin-bottom: 0.8rem; }
+.lock-input-group { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.lock-input-group input { flex: 1; background: #0a1625; border: 1.5px solid #1e6f9f; border-radius: 40px; padding: 0.8rem 1.2rem; font-size: 1.3rem; letter-spacing: 6px; color: #7df9ff; font-weight: 700; text-align: center; outline: none; }
+.lock-input-group input:disabled { opacity: 0.4; }
+.lock-input-group button { background: linear-gradient(145deg,#0f2b44,#0a1f33); border: 1.5px solid #2f8fff; border-radius: 40px; padding: 0 1.8rem; font-weight: 700; color: #b0e0ff; cursor: pointer; }
+.lock-input-group button:disabled { opacity: 0.4; cursor: not-allowed; }
+.lock-message { margin-top: 0.8rem; font-size: 0.85rem; color: #9ab8d4; min-height: 1.5rem; }
+.winner-area { margin-top: 1.2rem; text-align: center; }
+.winner-label { font-size: 0.85rem; letter-spacing: 3px; color: #ffd966; text-transform: uppercase; margin-bottom: 0.3rem; }
+.winner-name { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg,#ffd966,#ffaa33); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.winner-locked { font-size: 1.6rem; color: #3a6d99; letter-spacing: 4px; }
+.winner-details { margin-top: 0.6rem; background: #001d3d80; border-radius: 14px; padding: 0.6rem; font-size: 0.8rem; color: #b0d0f0; display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; }
+.hidden { display: none !important; }
+.footer { margin-top: 1.8rem; display: flex; justify-content: space-between; color: #4f7a9e; font-size: 0.8rem; border-top: 1px solid #1e3f5e; padding-top: 1rem; position: relative; z-index: 3; }
+.status-message { color: #ffb347; padding: 1.5rem; text-align: center; font-size: 0.95rem; line-height: 1.6; }
+.day-picker-info { color: #9ad0ff; font-size: 0.95rem; padding: 1.2rem; text-align: center; line-height: 1.7; }
+.day-picker-info i { color: #4df0ff; font-size: 1.8rem; display: block; margin-bottom: 0.6rem; }
+@media (max-width: 900px) { .exam-layout { grid-template-columns: 1fr; } .days-tracker { grid-template-columns: 1fr; } .main-title h2 { font-size: 2rem; } }
+</style>
+</head>
+<body>
+<div class="challenge-card">
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-badge">H.S.G.</div>
+      <div class="logo-text">
+        <h1>H.S.G.</h1>
+        <p><i class="fas fa-bolt" style="color:#4df0ff;"></i> @HighschoolGene · Learn · Practice · Achieve</p>
+      </div>
+    </div>
+    <div id="userBadge" class="user-badge hidden">
+      <i class="fas fa-user-circle"></i> <span id="userNameDisplay"></span>
+      <button onclick="logout()">Leave</button>
+    </div>
+  </div>
+
+  <div class="main-title">
+    <h2>3-DAY STUDY CHALLENGE</h2>
+    <div class="sub">SAT VERBAL & LOGICAL REASONING · 15 MCQs PER DAY</div>
+  </div>
+
+  <!-- JOIN SCREEN -->
+  <div id="joinScreen" class="auth-wrapper">
+    <div class="auth-panel">
+      <h3><i class="fas fa-door-open"></i> Join the Challenge</h3>
+      <div class="subtitle">Enter your name and a personal code (any code you like)</div>
+      <input type="text" id="joinName" placeholder="Full Name" autocomplete="name">
+      <input type="text" id="joinCode" placeholder="Your Code (e.g. HSG-001)" autocomplete="off">
+      <button id="joinBtn" onclick="doJoin()">Enter Challenge</button>
+      <div class="auth-msg" id="joinMsg"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="appScreen" class="hidden">
+    <div class="days-tracker">
+      <div class="day-card" id="dayCard1" onclick="selectDay(1)">
+        <div class="day-icon"><i class="fas fa-book-open"></i></div>
+        <div class="day-label">Day 1</div>
+        <div class="day-status" id="dayStatus1">Upcoming</div>
+        <div class="day-countdown" id="dayCountdown1">--:--:--</div>
+        <div class="day-score-badge" id="dayScore1"></div>
+      </div>
+      <div class="day-card upcoming" id="dayCard2" onclick="selectDay(2)">
+        <div class="day-icon"><i class="fas fa-pen-fancy"></i></div>
+        <div class="day-label">Day 2</div>
+        <div class="day-status" id="dayStatus2">Upcoming</div>
+        <div class="day-countdown" id="dayCountdown2">--:--:--</div>
+        <div class="day-score-badge" id="dayScore2"></div>
+      </div>
+      <div class="day-card upcoming" id="dayCard3" onclick="selectDay(3)">
+        <div class="day-icon"><i class="fas fa-trophy"></i></div>
+        <div class="day-label">Day 3</div>
+        <div class="day-status" id="dayStatus3">Upcoming</div>
+        <div class="day-countdown" id="dayCountdown3">--:--:--</div>
+        <div class="day-score-badge" id="dayScore3"></div>
+      </div>
+    </div>
+
+    <div class="exam-layout">
+      <div class="questions-panel">
+        <div class="panel-header">
+          <h3><i class="fas fa-question-circle"></i> <span id="examTitle">Pick a Day to Begin</span></h3>
+          <div class="timer-box">
+            <i class="fas fa-hourglass-half"></i>
+            <span class="timer-display" id="timerDisplay">20:00</span>
+          </div>
+        </div>
+        <div id="questionsContainer">
+          <div class="day-picker-info">
+            <i class="fas fa-hand-pointer"></i>
+            Select a day above to start.<br>
+            Each day unlocks automatically.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="info-card">
+          <h4><i class="fas fa-info-circle"></i> CHALLENGE DETAILS</h4>
+          <p><span class="highlight">3 days</span> · 15 MCQs each day.<br>
+          <span class="highlight">Time:</span> 20 minutes per day.<br>
+          <span class="highlight">Winner:</span> Highest total, then fastest total time.</p>
+          <div class="score-box">
+            <span><i class="fas fa-chart-bar"></i> Your Total</span>
+            <span class="score-value" id="scoreDisplay">0 / 45</span>
+          </div>
+        </div>
+
+        <div class="lock-section">
+          <div class="lock-title"><i class="fas fa-key"></i> ENTER 4-DIGIT ACCESS CODE</div>
+          <div class="lock-input-group">
+            <input type="password" id="lockInput" maxlength="4" placeholder="••••" disabled>
+            <button id="unlockBtn" onclick="tryUnlock()" disabled><i class="fas fa-lock"></i> LOCKED</button>
+          </div>
+          <div class="lock-message" id="lockMessage">
+            <i class="fas fa-hourglass-half"></i> Winner revealed after Day 3.
+          </div>
+        </div>
+
+        <div class="winner-area" id="winnerArea">
+          <div class="winner-label"><i class="fas fa-trophy"></i> WINNER ANNOUNCED</div>
+          <div id="winnerDisplay"><div class="winner-locked">🔒 •••• 🔒</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span><i class="fas fa-paper-plane"></i> Join on Telegram @HighschoolGene</span>
+    <span><i class="fas fa-shield-alt"></i> H.S.G. · Dream. Plan. Study. Succeed.</span>
+  </div>
+</div>
+
+<script>
+const STATE = {
+  student: null,
+  day: null,
+  questions: [],
+  userAnswers: [],
+  examFinished: false,
+  timeLeft: 20 * 60,
+  timerInterval: null,
+  challengeStatus: null,
+  progress: []
+};
+
+// ---- JOIN ----
+async function doJoin() {
+  const name = document.getElementById('joinName').value.trim();
+  const code = document.getElementById('joinCode').value.trim();
+  const msg = document.getElementById('joinMsg');
+  const btn = document.getElementById('joinBtn');
+
+  if (!name || !code) {
+    msg.textContent = 'Please enter both name and code';
+    msg.className = 'auth-msg error';
+    return;
+  }
+
+  btn.disabled = true;
+  msg.textContent = 'Joining...';
+  msg.className = 'auth-msg';
+
+  try {
+    const res = await fetch('/api/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, code })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.textContent = data.error || 'Could not join';
+      msg.className = 'auth-msg error';
+      btn.disabled = false;
+      return;
+    }
+
+    msg.textContent = '✅ Welcome, ' + data.student.name + '!';
+    msg.className = 'auth-msg success';
+    setTimeout(() => enterApp(data.student), 500);
+  } catch (err) {
+    msg.textContent = 'Connection error: ' + err.message;
+    msg.className = 'auth-msg error';
+    btn.disabled = false;
+  }
+}
+
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.reload();
+}
+
+// ---- ENTER APP ----
+async function enterApp(student) {
+  STATE.student = student;
+  document.getElementById('joinScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('userBadge').classList.remove('hidden');
+  document.getElementById('userNameDisplay').textContent = student.name;
+
+  await refreshStatus();
+  await refreshProgress();
+
+  setInterval(refreshStatus, 1000);
+  setInterval(refreshProgress, 5000);
+}
+
+async function checkSession() {
+  try {
+    const res = await fetch('/api/me');
+    if (res.ok) {
+      const data = await res.json();
+      enterApp(data.student);
+    }
+  } catch (e) {}
+}
+
+// ---- STATUS ----
+async function refreshStatus() {
+  try {
+    const res = await fetch('/api/status');
+    STATE.challengeStatus = await res.json();
+    updateDayTracker();
+  } catch (e) {}
+}
+
+async function refreshProgress() {
+  try {
+    const res = await fetch('/api/my-progress');
+    const data = await res.json();
+    STATE.progress = data.progress || [];
+    updateDayTracker();
+    updateTotalScore();
+  } catch (e) {}
+}
+
+function updateTotalScore() {
+  const done = STATE.progress.filter(p => p.submitted);
+  const totalScore = done.reduce((s, p) => s + (p.score || 0), 0);
+  document.getElementById('scoreDisplay').textContent = totalScore + ' / 45';
+}
+
+// ---- DAY TRACKER ----
+function formatCountdown(ms) {
+  if (ms <= 0) return '00:00:00';
+  const s = Math.floor(ms / 1000);
+  return String(Math.floor(s/3600)).padStart(2,'0') + ':' +
+         String(Math.floor((s%3600)/60)).padStart(2,'0') + ':' +
+         String(s%60).padStart(2,'0');
+}
+
+function updateDayTracker() {
+  if (!STATE.challengeStatus) return;
+  const now = Date.now();
+  const unlocks = STATE.challengeStatus.dayUnlocks;
+
+  for (let i = 0; i < 3; i++) {
+    const dayNum = i + 1;
+    const card = document.getElementById('dayCard' + dayNum);
+    const status = document.getElementById('dayStatus' + dayNum);
+    const countdown = document.getElementById('dayCountdown' + dayNum);
+    const scoreBadge = document.getElementById('dayScore' + dayNum);
+
+    const progress = STATE.progress.find(p => p.day === dayNum);
+    const done = progress && progress.submitted;
+
+    card.classList.remove('active','completed','upcoming');
+
+    if (done) {
+      card.classList.add('completed');
+      status.textContent = '✓ Completed';
+      countdown.textContent = '';
+      scoreBadge.textContent = 'Score: ' + progress.score + '/15';
+      continue;
+    }
+
+    if (now >= unlocks[i]) {
+      card.classList.add('active');
+      status.textContent = '● Available';
+      countdown.textContent = '';
+      scoreBadge.textContent = '';
+    } else {
+      card.classList.add('upcoming');
+      status.textContent = '🔒 Upcoming';
+      countdown.textContent = 'Reveals in ' + formatCountdown(unlocks[i] - now);
+      scoreBadge.textContent = '';
+    }
+  }
+
+  // Lock section — unlock only after challenge end
+  const lockInput = document.getElementById('lockInput');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const lockMsg = document.getElementById('lockMessage');
+
+  if (STATE.challengeStatus.challengeOver && !lockInput.dataset.unlocked) {
+    if (lockInput.disabled) {
+      lockInput.disabled = false;
+      unlockBtn.disabled = false;
+      unlockBtn.innerHTML = '<i class="fas fa-unlock-alt"></i> UNLOCK';
+      lockMsg.innerHTML = '<i class="fas fa-check-circle" style="color:#4dff88;"></i> Challenge complete! Enter code.';
+    }
+  }
+}
+
+// ---- DAY SELECTION ----
+async function selectDay(day) {
+  if (STATE.examFinished) return;
+
+  const now = Date.now();
+  const unlocks = STATE.challengeStatus.dayUnlocks;
+
+  // Already completed?
+  const progress = STATE.progress.find(p => p.day === day);
+  if (progress && progress.submitted) {
+    document.getElementById('questionsContainer').innerHTML =
+      '<div class="status-message"><i class="fas fa-check-circle" style="color:#4dff88;font-size:2rem;"></i><br><br>' +
+      'You have already completed Day ' + day + '.<br>' +
+      'Score: <b style="color:#4dff88;">' + progress.score + '/15</b></div>';
+    document.getElementById('examTitle').textContent = 'Day ' + day + ' · Completed';
+    return;
+  }
+
+  // Not unlocked yet?
+  if (now < unlocks[day - 1]) {
+    const remaining = unlocks[day - 1] - now;
+    document.getElementById('questionsContainer').innerHTML =
+      '<div class="status-message">🔒 Day ' + day + ' is not available yet.<br>Reveals in ' +
+      formatCountdown(remaining) + '</div>';
+    return;
+  }
+
+  // Start exam for this day
+  await startExam(day);
+}
+
+async function startExam(day) {
+  try {
+    const res = await fetch('/api/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ day })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      document.getElementById('questionsContainer').innerHTML =
+        '<div class="status-message"><i class="fas fa-info-circle"></i> ' + data.error + '</div>';
+      return;
+    }
+
+    STATE.day = day;
+    STATE.questions = data.questions;
+    STATE.userAnswers = new Array(data.questions.length).fill(null);
+    STATE.examFinished = false;
+
+    const elapsedSec = Math.floor((Date.now() - data.startedAt) / 1000);
+    STATE.timeLeft = Math.max(0, Math.floor(data.examDurationMs / 1000) - elapsedSec);
+
+    document.getElementById('examTitle').textContent = 'Day ' + day + ' · Exam';
+
+    renderQuestions();
+    startTimer();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ---- QUESTIONS ----
+function renderQuestions() {
+  const container = document.getElementById('questionsContainer');
+  const letters = ['A','B','C','D'];
+  container.innerHTML = '';
+
+  STATE.questions.forEach((q, idx) => {
+    const block = document.createElement('div');
+    block.className = 'question-block';
+
+    const qText = document.createElement('div');
+    qText.className = 'question-text';
+    qText.innerHTML = '<span class="q-num">' + (idx+1) + '.</span> ' + q.q;
+    block.appendChild(qText);
+
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'options';
+    q.options.forEach((opt, oIdx) => {
+      const optDiv = document.createElement('div');
+      optDiv.className = 'option';
+      optDiv.innerHTML = '<span class="letter">' + letters[oIdx] + '.</span> ' + opt;
+      optDiv.onclick = () => selectAnswer(idx, oIdx, optDiv);
+      optionsDiv.appendChild(optDiv);
+    });
+    block.appendChild(optionsDiv);
+    container.appendChild(block);
+  });
+}
+
+function selectAnswer(qIdx, oIdx, el) {
+  if (STATE.examFinished) return;
+  const block = el.closest('.question-block');
+  block.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.userAnswers[qIdx] = oIdx;
+
+  if (STATE.userAnswers.every(a => a !== null)) {
+    setTimeout(() => submitExam(), 500);
+  }
+}
+
+// ---- TIMER ----
+function startTimer() {
+  clearInterval(STATE.timerInterval);
+  const display = document.getElementById('timerDisplay');
+  display.style.color = '#7df9ff';
+
+  if (STATE.timeLeft <= 0) {
+    display.textContent = '00:00';
+    display.style.color = '#ff4d4d';
+    submitExam();
+    return;
+  }
+
+  display.textContent = String(Math.floor(STATE.timeLeft/60)).padStart(2,'0') + ':' +
+                        String(STATE.timeLeft%60).padStart(2,'0');
+
+  STATE.timerInterval = setInterval(() => {
+    STATE.timeLeft--;
+    display.textContent = String(Math.floor(STATE.timeLeft/60)).padStart(2,'0') + ':' +
+                          String(STATE.timeLeft%60).padStart(2,'0');
+    if (STATE.timeLeft <= 60) display.style.color = '#ff4d4d';
+    else if (STATE.timeLeft <= 300) display.style.color = '#ffb347';
+
+    if (STATE.timeLeft <= 0) {
+      clearInterval(STATE.timerInterval);
+      submitExam();
+    }
+  }, 1000);
+}
+
+// ---- SUBMIT ----
+async function submitExam() {
+  if (STATE.examFinished) return;
+  STATE.examFinished = true;
+  clearInterval(STATE.timerInterval);
+
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ day: STATE.day, answers: STATE.userAnswers })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      document.getElementById('timerDisplay').textContent = 'DONE';
+      document.getElementById('timerDisplay').style.color = '#4dff88';
+      document.getElementById('questionsContainer').innerHTML =
+        '<div class="status-message"><i class="fas fa-check-circle" style="color:#4dff88;font-size:2rem;"></i><br><br>' +
+        'Day ' + STATE.day + ' submitted!<br>' +
+        'Score: <b style="color:#4dff88;">' + data.score + ' / ' + data.total + '</b><br>' +
+        'Time: ' + Math.floor(data.timeTaken/60) + ':' + String(data.timeTaken%60).padStart(2,'0') + '</div>';
+      document.getElementById('examTitle').textContent = 'Day ' + STATE.day + ' · Done';
+      await refreshProgress();
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ---- UNLOCK ----
+async function tryUnlock() {
+  const pin = document.getElementById('lockInput').value.trim();
+  const msg = document.getElementById('lockMessage');
+  if (!pin) return;
+
+  try {
+    const res = await fetch('/api/winner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.innerHTML = '<i class="fas fa-times-circle" style="color:#ff7b7b;"></i> ' + data.error;
+      msg.style.color = '#ff7b7b';
+      document.getElementById('lockInput').value = '';
+      return;
+    }
+
+    if (data.winner) {
+      document.getElementById('winnerDisplay').innerHTML =
+        '<div class="winner-name">🏆 ' + data.winner.name + ' 🏆</div>' +
+        '<div class="winner-details">' +
+        '<span><i class="fas fa-star"></i> Total: ' + data.winner.totalScore + '/' + data.winner.totalMax + '</span>' +
+        '<span><i class="fas fa-clock"></i> Time: ' + Math.floor(data.winner.totalTime/60) + ':' + String(data.winner.totalTime%60).padStart(2,'0') + '</span>' +
+        '</div>';
+    } else {
+      document.getElementById('winnerDisplay').innerHTML = '<div class="winner-name">' + (data.message || 'No winner yet') + '</div>';
+    }
+    document.getElementById('lockInput').dataset.unlocked = 'true';
+    document.getElementById('lockInput').disabled = true;
+    document.getElementById('unlockBtn').disabled = true;
+  } catch (e) { console.error(e); }
+}
+
+checkSession();
+</script>
+</body>
+</html>
