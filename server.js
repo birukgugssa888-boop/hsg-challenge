@@ -51,6 +51,10 @@ app.post('/api/join', joinLimiter, (req, res) => {
 
     const cleanCode = code.trim().toUpperCase();
     const cleanName = name.trim();
+    const nameTaken = db.prepare('SELECT 1 FROM students WHERE LOWER(name) = LOWER(?)').get(cleanName);
+if (nameTaken) {
+  return res.status(409).json({ error: 'This name is already registered. Use your original code.' });
+}
 
     const exists = db.prepare('SELECT 1 FROM students WHERE code = ?').get(cleanCode);
     if (exists) return res.status(409).json({ error: 'This code is already taken. Choose a different one.' });
