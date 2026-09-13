@@ -58,11 +58,15 @@ app.post('/api/join', joinLimiter, (req, res) => {
     db.prepare(`INSERT INTO students (code, name, joined_at) VALUES (?, ?, ?)`)
       .run(cleanCode, cleanName, Date.now());
 
-    res.cookie('code', cleanCode, {
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 12 * 60 * 60 * 1000
-    });
+   const { remember } = req.body; // student clicked "Remember me"
+
+res.cookie('code', cleanCode, {
+  httpOnly: true,
+  sameSite: 'lax',
+  maxAge: remember
+    ? 30 * 24 * 60 * 60 * 1000   // 30 days
+    : 12 * 60 * 60 * 1000        // 12 hours
+});
 
     res.json({ ok: true, student: { name: cleanName, code: cleanCode } });
   } catch (err) {
