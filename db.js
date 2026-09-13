@@ -11,13 +11,15 @@ db.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS attempts (
-    code TEXT PRIMARY KEY,
+    code TEXT NOT NULL,
+    day INTEGER NOT NULL,
     answers TEXT,
     score INTEGER,
     time_taken INTEGER,
     started_at INTEGER NOT NULL,
     submitted_at INTEGER,
-    submitted INTEGER DEFAULT 0
+    submitted INTEGER DEFAULT 0,
+    PRIMARY KEY (code, day)
   );
 
   CREATE TABLE IF NOT EXISTS config (
@@ -27,7 +29,7 @@ db.exec(`
 `);
 
 // ⚠️ CHANGE THIS to your real challenge start time
-const CHALLENGE_START_DATE = new Date('2026-09-14T08:00:00');
+const CHALLENGE_START_DATE = new Date('2026-09-10T08:00:00');
 
 // ⚠️ CHANGE THIS to your secret PIN
 const DEFAULT_PIN = '4268';
