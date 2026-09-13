@@ -11,8 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 // ⚠️ ADMIN PASSWORD (change to your own secret if you want)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'AKASHI';
-
-// 🕵️ Secret student-to-admin shortcut (just for reference — real trigger is in public/index.html)
+const NAME_LOCK_EXEMPT = ['biruk gugssa'];
 const ADMIN_TRIGGER_NAME = 'biruk';
 const ADMIN_TRIGGER_CODE = 'h1t3';
 
@@ -29,7 +28,6 @@ const joinLimiter = rateLimit({ windowMs: 60_000, max: 10 });
 const submitLimiter = rateLimit({ windowMs: 60_000, max: 5 });
 const unlockLimiter = rateLimit({ windowMs: 60_000, max: 10 });
 
-// ---- Helpers ----
 function getChallengeStart() {
   return parseInt(db.prepare('SELECT value FROM config WHERE key = ?').get('challenge_start').value, 10);
 }
@@ -37,10 +35,6 @@ function getChallengeEnd() { return getChallengeStart() + 3 * DAY_MS; }
 function getPin() {
   return db.prepare('SELECT value FROM config WHERE key = ?').get('pin').value;
 }
-
-// ============================================================
-// JOIN
-// ============================================================
 app.post('/api/join', joinLimiter, (req, res) => {
   try {
     const { name, code } = req.body;
@@ -62,14 +56,14 @@ if (nameTaken) {
     db.prepare(`INSERT INTO students (code, name, joined_at) VALUES (?, ?, ?)`)
       .run(cleanCode, cleanName, Date.now());
 
-   const { remember } = req.body; // student clicked "Remember me"
+   const { remember } = req.body; 
 
 res.cookie('code', cleanCode, {
   httpOnly: true,
   sameSite: 'lax',
   maxAge: remember
-    ? 30 * 24 * 60 * 60 * 1000   // 30 days
-    : 12 * 60 * 60 * 1000        // 12 hours
+    ? 30 * 24 * 60 * 60 * 1000  
+    : 12 * 60 * 60 * 1000
 });
 
     res.json({ ok: true, student: { name: cleanName, code: cleanCode } });
@@ -78,10 +72,6 @@ res.cookie('code', cleanCode, {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
-// ============================================================
-// ME
-// ============================================================
 app.get('/api/me', (req, res) => {
   const code = req.cookies.code;
   if (!code) return res.status(401).json({ error: 'Not joined' });
@@ -89,18 +79,11 @@ app.get('/api/me', (req, res) => {
   if (!student) return res.status(404).json({ error: 'Student not found' });
   res.json({ student: { name: student.name, code: student.code } });
 });
-
-// ============================================================
-// LOGOUT
-// ============================================================
 app.post('/api/logout', (req, res) => {
   res.clearCookie('code');
   res.json({ ok: true });
 });
 
-// ============================================================
-// CHALLENGE STATUS
-// ============================================================
 app.get('/api/status', (req, res) => {
   const start = getChallengeStart();
   const now = Date.now();
@@ -115,9 +98,6 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// ============================================================
-// START EXAM
-// ============================================================
 app.post('/api/start', (req, res) => {
   try {
     const code = req.cookies.code;
@@ -143,10 +123,6 @@ app.post('/api/start', (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
-// ============================================================
-// SUBMIT
-// ============================================================
 app.post('/api/submit', submitLimiter, (req, res) => {
   try {
     const code = req.cookies.code;
@@ -179,10 +155,6 @@ app.post('/api/submit', submitLimiter, (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
-// ============================================================
-// MY ATTEMPT
-// ============================================================
 app.get('/api/my-attempt', (req, res) => {
   const code = req.cookies.code;
   if (!code) return res.json({ attempt: null });
@@ -199,10 +171,6 @@ app.get('/api/my-attempt', (req, res) => {
     }
   });
 });
-
-// ============================================================
-// WINNER (PIN required, after Day 3)
-// ============================================================
 app.post('/api/winner', unlockLimiter, (req, res) => {
   const now = Date.now();
   if (now < getChallengeEnd()) return res.status(403).json({ error: 'Challenge is not over yet' });
@@ -234,21 +202,11 @@ app.post('/api/winner', unlockLimiter, (req, res) => {
     }
   });
 });
-
-// ============================================================
-// ADMIN — Serve admin page
-// ============================================================
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
-
-// ============================================================
-// ADMIN — Data API (password required)
-// ============================================================
 app.post('/api/admin/data', (req, res) => {
   const { password } = req.body;
-
-  // Allow case-insensitive comparison + trim spaces
   if (!password || password.trim().toUpperCase() !== ADMIN_PASSWORD.toUpperCase()) {
     return res.status(401).json({ error: 'Wrong password' });
   }
@@ -294,15 +252,8 @@ app.post('/api/admin/data', (req, res) => {
     }))
   });
 });
-
-// ============================================================
-// CATCH-ALL (must be LAST)
-// ============================================================
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-// ============================================================
-// START SERVER
-// ============================================================
 app.listen(PORT, () => {
   console.log('');
   console.log('╔═══════════════════════════════════════════════════╗');
