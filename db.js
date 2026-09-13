@@ -29,7 +29,7 @@ db.exec(`
 `);
 
 // ⚠️ CHANGE THIS to your real challenge start time
-const CHALLENGE_START_DATE = new Date('2026-09-10T08:00:00');
+const CHALLENGE_START_DATE = new Date('2026-09-13T08:00:00');
 
 // ⚠️ CHANGE THIS to your secret PIN
 const DEFAULT_PIN = '4268';
